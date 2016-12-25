@@ -1,61 +1,91 @@
-var express = require('express');
-var graphqlHTTP = require('express-graphql');
-var { buildSchema } = require('graphql');
+const express = require('express');
+const graphqlHTTP = require('express-graphql');
+const {
+  GraphQLSchema,
+  GraphQLObjectType,
+  GraphQLID,
+  GraphQLString,
+  GraphQLInt,
+  GraphQLBoolean,
+  GraphQLList,
+  GraphQLNonNull
+} = require('graphql');
 
-var schema = buildSchema(`
+const {getOwner, getVideos} = require('./data.js');
 
-  type Owner {
-    id: ID,
-    name: String,
-    age: Int
+const ownerType = new GraphQLObjectType({
+  name: 'Owner',
+  description:'Dueño de las pelis',
+  fields:{
+    id: {
+      type: GraphQLID,
+      description: "id of owner"
+    },
+    name: {
+      type: GraphQLString,
+      description: 'name of owner'
+    },
+    age: {
+      type: GraphQLInt,
+      description: 'Owner\'s age'
+    }
   }
+})
 
-  type Video {
-    id: ID,
-    title: String,
-    duration: Int,
-    watched: Boolean
+const videoType = new GraphQLObjectType({
+  name: 'Video',
+  description:'Datos de la película',
+  fields:{
+    id:{
+      type: GraphQLID,
+      description: 'movie\'s id'
+    },
+    title:{
+      type: GraphQLString,
+      description: 'movie\'s title'
+    },
+    duration:{
+      type: GraphQLInt,
+      description: 'movie\'s duration'
+    },
+    watched:{
+      type: GraphQLBoolean,
+      description: 'Is watched this movie?'
+    }
   }
+})
 
-  type Query {
-    owner: Owner
-    videos: [Video]
+const queryType = new GraphQLObjectType({
+  name: "Query",
+  description: 'the root query type. A GraphQL object that contains them all!!',
+  fields: {
+    owner: {
+      type: ownerType
+    },
+    videos:{
+      type: new GraphQLList(videoType)
+    }
   }
-`);
+})
+
+
+const schema = new GraphQLSchema({
+  query: queryType
+})
 
 //2.- creacion de objetos y arreglos
-const owner = {
-  id: '1',
-  name: 'Chillanejo',
-  age: 35
-}
 
-const videoA = {
-  id: '2',
-  title: 'Cementerio pal pito 1',
-  duration: 69,
-  watched: true
-}
-
-const videoB = {
-  id: '3',
-  title: 'Cementerio pal pito 2',
-  duration: 44,
-  watched: true
-}
-
-const videoC = {
-  id: '4',
-  title: 'Cementerio pal pito 3',
-  duration: 72,
-  watched: false
-}
-const videos = [videoA, videoB, videoC]
 
 //3.- Se define un resolver
 const resolver = {
-    owner: () => owner,
-    videos: () => videos
+    owner: () => getOwner.then((owner) => {
+        console.log("owner:" + owner)
+        return owner
+    }),
+    videos: () => getVideos.then((videos) => {
+        console.log("videos:" + videos)
+        return videos
+    })
   };
 
 
