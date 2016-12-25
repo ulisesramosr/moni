@@ -30,6 +30,18 @@ const videos = [videoA, videoB, videoC]
 
 const getOwner = new Promise((resolve) => resolve(owner))
 const getVideos = new Promise((resolve) => resolve(videos))
+const createVideo = ({title, duration, watched}) => {
+  const video = {
+    id: (new Buffer(title, 'utf8')).toString('base64'),
+    title,
+    duration,
+    watched
+  }
+  videos.push(video)
+  return video
+}
+
 
 exports.getOwner = getOwner
 exports.getVideos = getVideos
+exports.createVideo = createVideo

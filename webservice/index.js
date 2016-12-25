@@ -11,8 +11,10 @@ const {
   GraphQLNonNull
 } = require('graphql');
 
-const {getOwner, getVideos} = require('./data.js');
+const {getOwner, getVideos, createVideo} = require('./data.js');
 
+
+//define los tipos
 const ownerType = new GraphQLObjectType({
   name: 'Owner',
   description:'Dueño de las pelis',
@@ -31,6 +33,7 @@ const ownerType = new GraphQLObjectType({
     }
   }
 })
+
 
 const videoType = new GraphQLObjectType({
   name: 'Video',
@@ -69,23 +72,47 @@ const queryType = new GraphQLObjectType({
 })
 
 
-const schema = new GraphQLSchema({
-  query: queryType
+//define un tipo mutation pra la insertar un vídeo
+const createVideoMutationType = new GraphQLObjectType({
+  name: 'createVideoMutation',
+  description: 'Tipo "mutation" para la creación de un dueño',
+  fields:{
+    createVideo:{
+      type: videoType,
+      description: 'Crea una nueva peli',
+      args:{
+        title: {
+          type: new GraphQLNonNull(GraphQLString),
+          description: 'Movie\'s title'
+        },
+        duration: {
+          type: new GraphQLNonNull(GraphQLInt),
+          description: 'Movie\'s duration'
+        },
+        watched: {
+          type: GraphQLBoolean,
+          description: 'is movie watched by owner?'
+        }
+      },
+      resolve: (_, args) => {
+        return createVideo(args);
+      }
+    }
+  }
 })
 
-//2.- creacion de objetos y arreglos
+
+//2.- define el esquema
+const schema = new GraphQLSchema({
+  query: queryType,
+  mutation: createVideoMutationType
+})
 
 
 //3.- Se define un resolver
 const resolver = {
-    owner: () => getOwner.then((owner) => {
-        console.log("owner:" + owner)
-        return owner
-    }),
-    videos: () => getVideos.then((videos) => {
-        console.log("videos:" + videos)
-        return videos
-    })
+    owner: () => getOwner.then((owner) => owner),
+    videos: () => getVideos.then((videos) =>  videos)
   };
 
 
