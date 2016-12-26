@@ -6,73 +6,92 @@ const {
   GraphQLID,
   GraphQLString,
   GraphQLInt,
+  GraphQLFloat,
   GraphQLBoolean,
   GraphQLList,
   GraphQLNonNull
 } = require('graphql');
 
-const {getOwner, getVideos, createVideo} = require('./data.js');
+const {getTags} = require('./dataManager.js');
 
 
 //define los tipos
-const ownerType = new GraphQLObjectType({
-  name: 'Owner',
-  description:'Dueño de las pelis',
-  fields:{
-    id: {
-      type: GraphQLID,
-      description: "id of owner"
-    },
-    name: {
-      type: GraphQLString,
-      description: 'name of owner'
-    },
-    age: {
-      type: GraphQLInt,
-      description: 'Owner\'s age'
-    }
-  }
-})
-
-
-const videoType = new GraphQLObjectType({
-  name: 'Video',
-  description:'Datos de la película',
+const acqDataType = new GraphQLObjectType({
+  name: 'acqData',
+  description:'Acquire data from tag',
   fields:{
     id:{
       type: GraphQLID,
-      description: 'movie\'s id'
+      description: 'ID of acqData'
     },
-    title:{
-      type: GraphQLString,
-      description: 'movie\'s title'
-    },
-    duration:{
+    timestamp:{
       type: GraphQLInt,
-      description: 'movie\'s duration'
+      description: 'Timestamp of acqData'
     },
-    watched:{
-      type: GraphQLBoolean,
-      description: 'Is watched this movie?'
+    value:{
+      type: GraphQLFloat,
+      description: 'value of acqData'
+    },
+    /*
+    idTag:{
+      type: GraphQLID,
+      description: 'id of asociated Tag'
+    }
+    */
+  }
+})
+
+const tagType = new GraphQLObjectType({
+  name: 'tag',
+  description:'Acquisition Tag info type',
+  fields:{
+    id: {
+      type: GraphQLID,
+      description: "id of tag"
+    },
+    name: {
+      type: GraphQLString,
+      description: 'name of tag'
+    },
+    description: {
+      type: GraphQLString,
+      description: 'description of tag'
+    },
+    timezone: {
+      type: GraphQLString,
+      description: 'timezone of acquisition tag'
+    },
+    confParams: {
+      type: GraphQLString,
+      description: 'configuration parameters of tag in JSON'
+    },
+    dataUnits: {
+      type: GraphQLString,
+      description: 'units used by tag'
+    },
+    dataList:{
+      type: new GraphQLList(acqDataType),
+      description:'List with acquired data'
     }
   }
 })
+
 
 const queryType = new GraphQLObjectType({
   name: "Query",
   description: 'the root query type. A GraphQL object that contains them all!!',
   fields: {
-    owner: {
-      type: ownerType
-    },
-    videos:{
-      type: new GraphQLList(videoType)
+    tags: {
+      type: new GraphQLList(tagType),
+      description: 'tag with data acquire',
+      resolve: () =>  getTags.then((tags) => tags)
     }
-  }
+  },
 })
 
 
 //define un tipo mutation pra la insertar un vídeo
+/*
 const createVideoMutationType = new GraphQLObjectType({
   name: 'createVideoMutation',
   description: 'Tipo "mutation" para la creación de un dueño',
@@ -101,25 +120,29 @@ const createVideoMutationType = new GraphQLObjectType({
   }
 })
 
+*/
 
 //2.- define el esquema
 const schema = new GraphQLSchema({
   query: queryType,
-  mutation: createVideoMutationType
+  /*mutation: createVideoMutationType*/
 })
 
+//getTags.then((tags) => console.log(tags))
 
 //3.- Se define un resolver
+/*
 const resolver = {
-    owner: () => getOwner.then((owner) => owner),
+    tags: () => getTags.then((tags) => {
+      console.log(tags)
+      return tags
+    }),
     videos: () => getVideos.then((videos) =>  videos)
   };
-
-
+*/
 var app = express();
 app.use('/graphql', graphqlHTTP({
   schema: schema,
-  rootValue: resolver,
   graphiql: true,
 }));
 app.listen(4000, () => console.log('Now browse to localhost:4000/graphql'));
