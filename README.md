@@ -19,5 +19,3 @@ git clone git@github.com:molavec/moni.git
  /graphql-server - A graphql server. It should work to consume and serve data
                    and it should work in cloud nodejs server or nodejs device.
 
-
-#Autrslsklaajj
